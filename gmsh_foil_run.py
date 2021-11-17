@@ -18,9 +18,9 @@ def _gf_mesh_run(foil_number_string, angle_of_attack, output_mesh_file, view):
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    if len(sys.argv):
+    if len(sys.argv) == 1:
         parser.print_help()
-        return 0
+        exit()
     
     _gf_mesh_run(args.foil_number_string,
             args.angle_of_attack, 

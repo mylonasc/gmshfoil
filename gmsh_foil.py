@@ -20,7 +20,8 @@ class GMSHFoil:
                                          h_0 = 0.01,
                                          L_x = 10,
                                          L_y = None, 
-                                         phi_angle = 0.):
+                                         phi_angle = 0.,
+                                         h_extrude = 1.):
         """
         Create the 2D unstructured mesh for simulating the airfoil.
         
@@ -31,6 +32,8 @@ class GMSHFoil:
           h_0               : (0.01)  h-refinement size for the points of the outer boundary
           L_x, L_y          : the length of the outer boundary.
           phi_angle         : "angle of attack" (just rotating the foil) in radians
+          h_extrude         : (1.) openfoam needs an extrusion height. The geometry plane is extruded 
+                              to a unit height in order to create cells.
           
         """
         
@@ -117,12 +120,17 @@ class GMSHFoil:
         top_boundary_group    = _gmsh.model.addPhysicalGroup(1,bound_curve[_blcs[0]:_blcs[1]],2)
         right_boundary_group  = _gmsh.model.addPhysicalGroup(1,bound_curve[_blcs[1]:_blcs[2]],3)
         bottom_boundary_group = _gmsh.model.addPhysicalGroup(1,bound_curve[_blcs[2]:],4)
+        air                   = _gmsh.model.addPhysicalGroup(2,[0],5) #dim, index of planeSurface, physicalGroup index
+
         
         _gmsh.model.setPhysicalName(1, foil_surf_group, 'foil_surf')
         _gmsh.model.setPhysicalName(1, left_boundary_group,'left_boundary' )
         _gmsh.model.setPhysicalName(1, right_boundary_group, 'right_boundary')
         _gmsh.model.setPhysicalName(1, top_boundary_group, 'top_boundary')
         _gmsh.model.setPhysicalName(1, bottom_boundary_group, 'bottom_boundary')
+        _gmsh.model.setPhysicalName(2,air,'air')
+        _gmsh.option.setNumber('Mesh.MshFileVersion' , 2.10)
+        _gmsh.model.geo.extrude([(2,1)], 0,0,h_extrude)
         
         _gmsh.model.geo.synchronize()
         _gmsh.model.mesh.generate(2)
@@ -131,3 +139,10 @@ class GMSHFoil:
         
     def view(self):
         self.gmsh.fltk.run()
+
+if __name__ == '__main__':
+    gmsh_foil = GMSHFoil(foil_name = '4812', mesh_name = 'NACA_4812')
+    # Creates the mesh
+    gmsh_foil.create_2d_unstructured_foil_mesh()
+
+    
